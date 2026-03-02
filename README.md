@@ -1,70 +1,204 @@
-# Getting Started with Create React App
+# 🍽️ DevDine — Food Delivery App with End-to-End DevOps Pipeline
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A complete end-to-end DevOps pipeline implementation for **DevDine**, a React-based food delivery web application. This project demonstrates a production-grade CI/CD workflow using industry-standard DevOps tools — from source code to deployment to monitoring.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 🏗️ Architecture Overview
 
-### `npm start`
+```
+Developer pushes code to GitHub
+        ↓
+Jenkins pulls code & builds Docker image
+        ↓
+Docker image deployed to Kubernetes (Minikube)
+        ↓
+ArgoCD watches GitHub repo & auto-syncs deployment
+        ↓
+Prometheus scrapes metrics → Grafana visualizes them
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🛠️ Tech Stack
 
-### `npm test`
+| Category | Tool |
+|---|---|
+| Frontend | React.js |
+| Containerization | Docker |
+| CI/CD | Jenkins |
+| Container Orchestration | Kubernetes (Minikube) |
+| Package Manager (K8s) | Helm |
+| GitOps Deployment | Argo CD |
+| Monitoring | Prometheus + Grafana |
+| Version Control | Git + GitHub |
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## 🚀 Features
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- ✅ Multi-stage Docker build (Node.js → nginx:alpine) for optimized image size
+- ✅ Automated Jenkins pipeline triggered on code push
+- ✅ Kubernetes deployment with 2 replicas for high availability
+- ✅ Helm charts for templated, reusable Kubernetes manifests
+- ✅ GitOps deployment with ArgoCD — auto-syncs on every GitHub push
+- ✅ Real-time cluster monitoring with Prometheus and Grafana dashboards
+- ✅ Security-first approach using `nginx:alpine` to minimize attack surface
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 📸 Screenshots
 
-### `npm run eject`
+### ArgoCD — Application Health Status
+![ArgoCD Dashboard](screenshots/Screenshot%202026-03-02%20151844.png)
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Grafana — Kubernetes Cluster Metrics
+![Grafana Dashboard](screenshots/Screenshot%202026-03-02%20152231.png)
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+---
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 📁 Project Structure
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```
+DevOps-Project-DevDine/
+├── src/                        # React application source
+│   └── components/             # Navbar, Hero, Categories, Restaurants, Footer
+├── k8s/                        # Kubernetes manifests
+│   ├── deployment.yaml         # Deployment with 2 replicas
+│   └── service.yaml            # NodePort service on port 32000
+├── devdine-chart/              # Helm chart
+│   ├── Chart.yaml
+│   ├── values.yaml
+│   └── templates/
+│       ├── deployment.yaml
+│       └── service.yaml
+├── screenshots/                # Project screenshots
+├── Dockerfile                  # Multi-stage build
+├── Jenkinsfile                 # CI/CD pipeline definition
+└── README.md
+```
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## ⚙️ Pipeline Stages (Jenkinsfile)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+1. **Clone Repository** — Jenkins pulls latest code from GitHub
+2. **Build Docker Image** — Multi-stage Docker build (React build → nginx serve)
+3. **Run Container** — Stops old container, runs new one on port 8080
 
-### Code Splitting
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 🐳 Docker — Multi-Stage Build
 
-### Analyzing the Bundle Size
+```dockerfile
+# Stage 1: Build React app
+FROM node:18-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+# Stage 2: Serve with nginx
+FROM nginx:alpine
+COPY --from=build /app/build /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
 
-### Making a Progressive Web App
+The multi-stage build ensures the final image only contains the production build served by nginx — keeping the image size minimal.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
+## ☸️ Kubernetes Deployment
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+The app is deployed with **2 replicas** for availability. Managed via:
+- Raw Kubernetes manifests in `/k8s`
+- Helm chart in `/devdine-chart`
+- GitOps sync via ArgoCD watching the `/k8s` directory
 
-### Deployment
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## 🔁 GitOps with ArgoCD
 
-### `npm run build` fails to minify
+ArgoCD is configured to watch the `k8s/` directory of this repository. Any change pushed to GitHub is automatically detected and synced to the Kubernetes cluster — no manual `kubectl apply` needed.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
+
+## 📊 Monitoring
+
+- **Prometheus** — Installed via `kube-prometheus-stack` Helm chart, scrapes metrics from Kubernetes nodes and pods
+- **Grafana** — Visualizes cluster metrics (CPU, memory, pod health) via pre-built dashboards (Dashboard ID: 15661)
+
+---
+
+## 🔐 Security (DevSecOps)
+
+- Used `nginx:alpine` as the final base image to minimize the attack surface and reduce vulnerabilities
+- Multi-stage build ensures no development dependencies (node_modules, build tools) are present in the final image
+- Kubernetes deployments follow the principle of least privilege
+
+---
+
+## 🧩 Challenges & Troubleshooting
+
+| Challenge | Solution |
+|---|---|
+| Large Docker image size (~1.2GB with node) | Implemented multi-stage build with `nginx:alpine`, reducing final image to ~25MB |
+| Jenkins couldn't access Docker socket | Fixed by running `chmod 666 /var/run/docker.sock` inside Jenkins container |
+| ArgoCD couldn't access private GitHub repo | Added GitHub Personal Access Token as credentials in ArgoCD repository settings |
+| Minikube couldn't pull local Docker image | Used `minikube image load devdine:latest` to load image into Minikube's registry |
+| Base64 decode not available on Windows | Used PowerShell's `[System.Convert]::FromBase64String()` as an alternative |
+
+---
+
+## 🧰 Prerequisites
+
+- Docker Desktop
+- Minikube
+- kubectl
+- Helm
+- Node.js
+- Git
+
+---
+
+## 🏃 How to Run Locally
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/Palak-0406/DevOps-Project-DevDine.git
+cd DevOps-Project-DevDine
+
+# 2. Start Minikube
+minikube start --driver=docker
+
+# 3. Build and load Docker image
+docker build -t devdine:latest .
+minikube image load devdine:latest
+
+# 4. Deploy using Helm
+helm install devdine-helm devdine-chart
+
+# 5. Access the app
+minikube service devdine-helm-service --url
+```
+
+---
+
+## 📌 Key Learnings
+
+- Containerizing a React app using multi-stage Docker builds
+- Setting up a Jenkins pipeline from scratch with GitHub integration
+- Deploying and managing applications on Kubernetes using both raw manifests and Helm charts
+- Implementing GitOps principles using ArgoCD for automated, declarative deployments
+- Monitoring Kubernetes workloads using the Prometheus + Grafana stack
+- Debugging real DevOps issues like Docker socket permissions and image registry access
+
+---
+
+## 👩‍💻 Author
+
+**Palak Agarwal**  
+B.Tech CSE — Information Security | VIT Vellore  
+GitHub: [@Palak-0406](https://github.com/Palak-0406)
