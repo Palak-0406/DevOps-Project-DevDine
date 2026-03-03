@@ -196,9 +196,3 @@ minikube service devdine-helm-service --url
 - Debugging real DevOps issues like Docker socket permissions and image registry access
 
 ---
-
-## 👩‍💻 Author
-
-**Palak Agarwal**  
-B.Tech CSE — Information Security | VIT Vellore  
-GitHub: [@Palak-0406](https://github.com/Palak-0406)
